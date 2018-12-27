@@ -24,6 +24,7 @@ inline frac Gauss(vector<vector<frac>>& A, int n) {
             for (int j = i; j <= n; ++j) A[k][j] = A[k][j] - f * A[i][j];
         }
     }
+    /*
     for (int i = n - 1; i >= 0; --i) {
         for (int j = i + 1; j < n; ++j)
             A[i][n] = A[i][n] - A[j][n] * A[i][j];
@@ -31,6 +32,7 @@ inline frac Gauss(vector<vector<frac>>& A, int n) {
 	if (A[i][i].num == 0) return 0;
         A[i][n] = A[i][n] / A[i][i];
     }
+    */
     frac ret(1, 1);
     /*
      for (int i = 0; i < n; ++i)
