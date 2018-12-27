@@ -1,53 +1,59 @@
 #include <bits/stdc++.h>
+#include "frac.h"
 #define eps 1e-10
 using namespace std;
+using namespace Frac;
 
 int n;
 
-inline double Gauss(vector<vector<double>>& A, int n) {
+inline frac Gauss(vector<vector<frac>>& A, int n) {
     for (int i = 0; i < n; ++i) {
         int r = i;
         for (int j = i + 1; j < n; ++j)
-            if (fabs(A[j][i]) > fabs(A[r][i]))
+            if (A[j][i].getValue() > A[r][i].getValue())
                 r = j;
         if (r != i)
             for (int j = 0; j <= n; ++j)
                 swap(A[r][j], A[i][j]);
         for (int k = i + 1; k < n; ++k) {
-            if (A[i][i] == 0)
+            if (A[i][i].num == 0)
                 return 0;
-            double f = A[k][i] / A[i][i];
-            for (int j = i; j <= n; ++j) A[k][j] -= f * A[i][j];
+            frac f = A[k][i] / A[i][i];
+            for (int j = i; j <= n; ++j) A[k][j] = A[k][j] - f * A[i][j];
         }
     }
     for (int i = n - 1; i >= 0; --i) {
         for (int j = i + 1; j < n; ++j)
-            A[i][n] -= A[j][n] * A[i][j];
-        A[i][n] /= A[i][i];
+            A[i][n] = A[i][n] - A[j][n] * A[i][j];
+        A[i][n] = A[i][n] / A[i][i];
     }
-    double ret = 1.0;
+    frac ret(1, 1);
     /*
      for (int i = 0; i < n; ++i)
      ret *= A[i][n];
      */
     // for (int i = 0; i < n; ++i) printf("%.6f\n", A[i][i]);
     for (int i = 0; i < n; ++i)
-        ret *= A[i][i];
+        ret = ret * A[i][i];
     return ret;
 }
 
-inline vector<vector<double>> adjoint(const vector<vector<double>>& A, int n) {
-    vector<vector<double>> Astar(n, vector<double>(n));
+inline vector<vector<frac>> adjoint(const vector<vector<frac>>& A, int n) {
+    vector<vector<frac>> Astar(n, vector<frac>(n));
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            double sgn = ((i + j) & 1) ? -1.0 : 1.0;
-            vector<vector<double>> rest(n, vector<double>(n));
+            frac sgn;
+	    if ((i + j) & 1)
+		sgn.setValue(-1, 1);
+	    else
+		sgn.setValue(1, 1);
+            vector<vector<frac>> rest(n, vector<frac>(n));
             for (int k = 0, r = 0; k < n; ++k) {
                 if (k == i) continue;
                 for (int t = 0, c = 0; t < n; ++t) {
                     if (t == j) continue;
-                    if (A[i][j] == 0.0) {
-                        rest[r][c++] = 0.0;
+                    if (A[i][j].num == 0) {
+                        rest[r][c++].setValue(0, 1);
                         continue;
                     }
                     rest[r][c++] = A[k][t];
@@ -59,7 +65,7 @@ inline vector<vector<double>> adjoint(const vector<vector<double>>& A, int n) {
              for (int t = 0; t < n - 1; ++t)
              printf("%.6f%c", rest[k][t], t == n - 2 ? '\n' : ' ');
              */
-            double det = Gauss(rest, n - 1);
+            frac det = Gauss(rest, n - 1);
             Astar[i][j] = sgn * det;
             // printf("adjoint(%d, %d):%.6f\n", i, j, Astar[i][j]);
         }
@@ -67,8 +73,8 @@ inline vector<vector<double>> adjoint(const vector<vector<double>>& A, int n) {
     return Astar;
 }
 
-inline vector<vector<double>> transpose(const vector<vector<double>>& A, int n) {
-    vector<vector<double>> AT(n, vector<double>(n));
+inline vector<vector<frac>> transpose(const vector<vector<frac>>& A, int n) {
+    vector<vector<frac>> AT(n, vector<frac>(n));
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < n; ++j)
             AT[j][i] = A[i][j];
@@ -76,30 +82,41 @@ inline vector<vector<double>> transpose(const vector<vector<double>>& A, int n) 
 }
 
 int main() {
-    scanf("%d", &n);
-    vector<vector<double>> M(n, vector<double>(n));
+    ios::sync_with_stdio(false);
+    cin.tie(0);
+    cin >> n;
+    vector<vector<frac>> M(n, vector<frac>(n));
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < n; ++j)
-            scanf("%lf", &M[i][j]);
-    vector<vector<double>> A(n + 1, vector<double>(n + 1));
+            M[i][j].input();
+    /*
+    for (int i = 0; i < n; ++i) {
+	for (int j = 0; j < n; ++j)
+	    cout << M[i][j] << " ";
+	cout << endl;
+    }
+    */
+    vector<vector<frac>> A(n + 1, vector<frac>(n + 1));
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < n; ++j)
             A[i][j] = M[i][j];
-    double det = Gauss(A, n);
-    printf("det:%.6f\n", fabs(det));
-    if (fabs(det) <= eps) {
+    frac det = Gauss(A, n);
+    cout << det << endl;
+    if (det.num == 0) {
         printf("Failed! The Matrix is strange!\n");
         return 1;
     }
-    vector<vector<double>> Astar = adjoint(M, n);
-    vector<vector<double>> inv = transpose(Astar, n);
+    vector<vector<frac>> Astar = adjoint(M, n);
+    vector<vector<frac>> inv = transpose(Astar, n);
     for (int i = 0; i < n; ++i)
         for (int j = 0; j < n; ++j) {
-            inv[i][j] /= det;
-            if (fabs(inv[i][j]) < eps) inv[i][j] = 0.0;
+            inv[i][j] = inv[i][j] / det;
+            if (inv[i][j].num == 0) inv[i][j].setValue(0, 1);
         }
-    for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j)
-            printf("%.6f%c", inv[i][j], j == n - 1 ? '\n' : ' ');
+            cout << inv[i][j] << " ";
+	cout << endl;
+    }
     return 0;
 }
