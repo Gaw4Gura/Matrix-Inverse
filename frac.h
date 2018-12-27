@@ -36,11 +36,10 @@ namespace Frac {
     void frac::input() {
         string s;
         cin >> s;
-        bool flag = 0;
-        int sgn = 1;
+        bool flag = 0, sgn = 1;
         LL _num = 0, _den = 0;
         for (int i = 0; i < s.size(); ++i) {
-            if (s[i] == '-') sgn ^= 1;
+            if (s[i] == '-') sgn = !sgn;
             if (s[i] == '/') flag = 1;
             if (!flag) {
                 if (s[i] >= '0' && s[i] <= '9')
@@ -78,7 +77,7 @@ namespace Frac {
         this->simplify();
     }
     
-    long double frac::getValue() const { return 1.0 * this->num / this->den; }
+    long double frac::getValue() const { return 1.0 * this->num / (long double)den; }
     void frac::setValue(LL _num, LL _den) { *this = frac(_num, _den); }
     
     frac frac::rev() {
@@ -114,11 +113,11 @@ namespace Frac {
         frac ret;
         if (sgn == f.sgn) {
             ret.num = abs(num * f.den - den * f.num);
-            ret.den = abs(den * f.den);
+            ret.den = den * f.den;
             if (getValue() >= f.getValue())
-                ret.sgn = 1;
+                ret.sgn = sgn;
             else
-                ret.sgn = 0;
+                ret.sgn = !sgn;
         } else {
             ret.num = num * f.den + den * f.num;
             ret.den = den * f.den;
@@ -156,8 +155,8 @@ namespace Frac {
     
     bool frac::operator<(const frac& f) const {
         if (sgn != f.sgn) {
-            if (sgn) return 1;
-            else return 0;
+            if (sgn) return 0;
+            else return 1;
         } else {
             if (getValue() < f.getValue()) {
                 if (sgn) return 1;
